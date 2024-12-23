@@ -123,7 +123,6 @@ class GA:
                             c[i]=v
                             break
 
-        #fixCollisions() TODO:...
 
 
 
