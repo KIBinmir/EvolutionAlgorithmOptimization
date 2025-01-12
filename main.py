@@ -2,123 +2,138 @@ import pygame as pg
 import numpy as np
 import sys
 from drawing import *
+from evolution_comminvoyadger import *
 
 
-def test_intersection():
-    size = (800, 600)
-    fps = 60
-    screen = pg.display.set_mode(size)
+def main():
+    sz = (1200, 900)
+    screen = pg.display.set_mode(sz)
     timer = pg.time.Clock()
-    alpha = 0
-    p0 = [400, 300]
-    a = 200
-    b = 100
-    pts = [[200, 200], [500, 500]]
-    p0 = [400, 400]
-    ind = 1
-    state1 = inEllipse(pts[0], a, b, p0, alpha)
-    state2 = inEllipse(pts[1], a, b, p0, alpha)
-    intersectPoints = findPointsIntersectionEllipseWithSegment(pts[0], pts[1], a, b, p0, alpha)
+    fps = 20
+
+    numPoints = 50
+    numAreas = 0
+    field = Field(800, 600, 200, 150)
+    field.initRobot()
+    field.initPoints(numPoints)
+    field.initDifficultAreas(numAreas)
+    # route=list(range(0, len(pts)))
+
+    distMatrix = getDistMatrix(field.points)
+    p0Dists = getDistsFromPoint2Points(field.robot.getPos(), field.points)
+    timeMatrix = getTimeMatrix(field.points, field.difficultAreas)
+    p0Times = getTimesFromPoint2Points(field.robot.getPos(), field.points, field.difficultAreas)
+
+    routeBest, timeBest = None, None
+    dst = 0
+    ftnss = 0
+
+    ga = TSPCEA(200, numPoints, numEliteIndivids=10)
+    ga.init()
+    ga.caclFitnessPopulation2(p0Times, timeMatrix)
 
     while True:
         for ev in pg.event.get():
             if ev.type == pg.QUIT:
                 sys.exit(0)
             if ev.type == pg.KEYDOWN:
+                if ev.key == pg.K_g:
+                    for i in range(100):
+                        # ga.epoch(field.robot.getPos(), field.points)
+                        ga.epoch2(p0Times, timeMatrix)
+                        routeBest = ga.listEliteIndivids[0].route
+                        timeBest = getTimeRoute2(p0Times, routeBest, timeMatrix)
+                        dst = getRouteLen2(p0Dists, routeBest, distMatrix)
+                        ftnss = ga.listEliteIndivids[0].fitness
+
+                        print(f"Generation: {ga.numGeneration}")
+                        print(f"Best route: {routeBest}")
+                        print(f"Time: {timeBest}")
+                        print(f"Dist: {dst}")
+                        print(f"Fitness: {ftnss}")
+
+                    # print(*[ind.fitness for ind in ga.listEliteIndivids])
+                if ev.key == pg.K_0:
+                    numAreas = 0
+                    field.initDifficultAreas(numAreas)
+                    distMatrix = getDistMatrix(field.points)
+                    p0Dists = getDistsFromPoint2Points(field.robot.getPos(), field.points)
+                    timeMatrix = getTimeMatrix(field.points, field.difficultAreas)
+                    p0Times = getTimesFromPoint2Points(field.robot.getPos(), field.points, field.difficultAreas)
+                    routeBest = None
                 if ev.key == pg.K_1:
-                    ind = 0
+                    numAreas = 1
+                    field.initDifficultAreas(numAreas)
+                    distMatrix = getDistMatrix(field.points)
+                    p0Dists = getDistsFromPoint2Points(field.robot.getPos(), field.points)
+                    timeMatrix = getTimeMatrix(field.points, field.difficultAreas)
+                    p0Times = getTimesFromPoint2Points(field.robot.getPos(), field.points, field.difficultAreas)
+                    routeBest = None
                 if ev.key == pg.K_2:
-                    ind = 1
-                if ev.key == pg.K_w:
-                    pts[ind][1] -= 10
+                    numAreas = 2
+                    field.initDifficultAreas(numAreas)
+                    distMatrix = getDistMatrix(field.points)
+                    p0Dists = getDistsFromPoint2Points(field.robot.getPos(), field.points)
+                    timeMatrix = getTimeMatrix(field.points, field.difficultAreas)
+                    p0Times = getTimesFromPoint2Points(field.robot.getPos(), field.points, field.difficultAreas)
+                    routeBest = None
+                if ev.key == pg.K_3:
+                    numAreas = 3
+                    field.initDifficultAreas(numAreas)
+                    distMatrix = getDistMatrix(field.points)
+                    p0Dists = getDistsFromPoint2Points(field.robot.getPos(), field.points)
+                    timeMatrix = getTimeMatrix(field.points, field.difficultAreas)
+                    p0Times = getTimesFromPoint2Points(field.robot.getPos(), field.points, field.difficultAreas)
+                    routeBest = None
+                if ev.key == pg.K_4:
+                    numAreas = 4
+                    field.initDifficultAreas(numAreas)
+                    distMatrix = getDistMatrix(field.points)
+                    p0Dists = getDistsFromPoint2Points(field.robot.getPos(), field.points)
+                    timeMatrix = getTimeMatrix(field.points, field.difficultAreas)
+                    p0Times = getTimesFromPoint2Points(field.robot.getPos(), field.points, field.difficultAreas)
+                    routeBest = None
+                if ev.key == pg.K_5:
+                    numAreas = 5
+                    field.initDifficultAreas(numAreas)
+                    distMatrix = getDistMatrix(field.points)
+                    p0Dists = getDistsFromPoint2Points(field.robot.getPos(), field.points)
+                    timeMatrix = getTimeMatrix(field.points, field.difficultAreas)
+                    p0Times = getTimesFromPoint2Points(field.robot.getPos(), field.points, field.difficultAreas)
+                    routeBest = None
+
                 if ev.key == pg.K_s:
-                    pts[ind][1] += 10
-                if ev.key == pg.K_a:
-                    pts[ind][0] -= 10
-                if ev.key == pg.K_d:
-                    pts[ind][0] += 10
-                if ev.key == pg.K_e:
-                    alpha += 5
-                if ev.key == pg.K_q:
-                    alpha -= 5
-                state1 = inEllipse(pts[0], a, b, p0, alpha)
-                state2 = inEllipse(pts[1], a, b, p0, alpha)
-                intersectPoints = findPointsIntersectionEllipseWithSegment(pts[0], pts[1], a, b, p0, alpha)
+                    ga.getGraphics("test_graphic50.png")
+                    pg.image.save(screen, 'test_field50.png')
+
+                if ev.key == pg.K_c:
+                    ga = TSPCEA(200, numPoints, numEliteIndivids=10)
+                    ga.init()
+                    ga.caclFitnessPopulation2(p0Times, timeMatrix)
+                    routeBest = None
 
         dt = 1 / fps
 
-
-
-
         screen.fill((255, 255, 255))
-        drawEllipse(screen, a, b, p0, alpha, (0, 0, 40, 128), w=1, fill=True)
+        field.draw(screen)
 
-        drawText(screen, f"Points in ellipse = {[state1, state2]}", 5, 5)
-        drawText(screen, f"Points = {pts}", 5, 25)
-        drawText(screen, f"Angle = {alpha}", 5, 45)
-        drawText(screen, f"Active point: {ind+1}", 5, 65)
+        # L=getRouteLen(p0, pts, route)
 
-        pg.draw.circle(screen, (255, 0, 0), pts[0], 3)
-        pg.draw.circle(screen, (0, 255, 0), pts[1], 3)
-        pg.draw.line(screen, (0, 0, 0), pts[0], pts[1], 1)
-        if len(intersectPoints) > 0:
-            drawText(screen, f"Intersection point 1: [{intersectPoints[0][0]:.0f},{intersectPoints[0][1]:.0f}]", 5, 85)
-            if len(intersectPoints) > 1:
-                drawText(screen, f"Intersection point 2: [{intersectPoints[1][0]:.0f},{intersectPoints[1][1]:.0f}]", 5,
-                         105)
-            for p in intersectPoints:
-                pg.draw.circle(screen, (0, 255, 255), p, 3)
+        # drawRoute(screen, p0, pts, route)
 
+        # drawText(screen, f"inds = {route}", 5, 5)
+        # drawText(screen, f"L = {L:.2f}", 5, 25)
+        drawText(screen, f"Generation = {ga.numGeneration}", 5, 5)
+        if routeBest is not None:
+            drawText(screen, f"BestRoute = {[i + 1 for i in routeBest]}", 5, 25)
+            drawText(screen, f"TimeBest = {timeBest:.2f} [sec]", 5, 45)
+            drawText(screen, f"dist = {dst:.0f} [m]", 5, 65)
+            drawText(screen, f"fitness = {ftnss:.0f}", 5, 85)
+
+            drawRoute(screen, field.robot.getPos(), field.points, routeBest, (255, 0, 0))
 
         pg.display.flip()
         timer.tick(fps)
-
-def test_ellipse():
-    size = (800, 600)
-    fps = 60
-    screen = pg.display.set_mode(size)
-    timer = pg.time.Clock()
-    alpha = 45
-    a = 200
-    b = 100
-    p = [400, 400]
-    p0 = [400, 400]
-    state = inEllipse(p, a, b, p0, alpha)
-
-    while True:
-        for ev in pg.event.get():
-            if ev.type == pg.QUIT:
-                sys.exit(0)
-            if ev.type == pg.KEYDOWN:
-                if ev.key == pg.K_w:
-                    p[1] -= 10
-                if ev.key == pg.K_s:
-                    p[1] += 10
-                if ev.key == pg.K_a:
-                    p[0] -= 10
-                if ev.key == pg.K_d:
-                    p[0] += 10
-                if ev.key == pg.K_e:
-                    alpha += 5
-                if ev.key == pg.K_q:
-                    alpha -= 5
-                state = inEllipse(p, a, b, p0, alpha)
-
-        dt = 1 / fps
-
-
-        screen.fill((255, 255, 255))
-        drawEllipse(screen, a, b, p0, alpha, (0,0,40, 128), w=0, fill=True)
-        drawText(screen, f"Point in ellipse = {state}", 5, 5)
-        drawText(screen, f"Point = {p}", 5, 25)
-        drawText(screen, f"Angle = {alpha}", 5, 45)
-        pg.draw.circle(screen, (255,0,0), p, 3)
-
-        pg.display.flip()
-        timer.tick(fps)
-
-
+    
 if __name__ == '__main__':
-    test_intersection()
-    #test_ellipse()
-    #test()
+    main()
